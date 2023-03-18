@@ -1,13 +1,13 @@
 [package]
 name = "multi_iter"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["mklifo <mklifo@proton.me>"]
 edition = "2021"
 
 repository = "https://github.com/mklifo/multi_iter"
 readme = "README.md"
 categories = ["algorithms", "rust-patterns"]
-keywords = ["iterator", "peek_n", "peek", "next_n", "next"]
+keywords = ["iterator", "next", "peek", "no_alloc", "no_std"]
 
 license = "MIT"
 description = "Iterator for acting on multiple elements at a time"
