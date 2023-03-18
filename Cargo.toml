@@ -1,0 +1,26 @@
+[package]
+name = "multi_iter"
+version = "0.1.0"
+authors = ["mklifo <mklifo@proton.me>"]
+edition = "2021"
+
+repository = "https://github.com/mklifo/multi_iter"
+readme = "README.md"
+categories = ["algorithms", "rust-patterns"]
+keywords = ["iterator", "peek_n", "peek", "next_n", "next"]
+
+license = "MIT"
+description = "Iterator for acting on multiple elements at a time"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[features]
+default = ["std"]
+
+# Toggle for `no_std`
+std = []
+
+# Toggle for nightly support
+unstable = []
