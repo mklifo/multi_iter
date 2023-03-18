@@ -1,12 +1,12 @@
 //! This crate provides an iterator which can act on multiple elements at once without any
-//! allocations. These combinators are similar to those of [`std::iter::Iterator`].
+//! allocations. It's functions are similar to [`std::iter::Iterator`].
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "unstable")]
 use std::collections::BinaryHeap;
 
-/// An iterator that provides combinators for acting on multiple elements at a time.
+/// An iterator that provides functions for acting on multiple elements at a time.
 ///
 /// This `struct` is created by the `multi_iter` method on [`IntoMultiIterator`]. See its
 /// documentation for more.
@@ -25,6 +25,7 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::MultiIterator;
+    /// 
     /// let iter = MultiIterator::new(&[1, 2, 3]);
     /// ```
     #[inline]
@@ -42,8 +43,10 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
+    /// 
     /// let a = [1, 2, 3];
     /// let iter = a.multi_iter();
+    /// 
     /// assert_eq!(iter.peek_n(2).unwrap(), [1, 2].as_ref());
     /// assert_eq!(iter.len(), 3);
     /// ```
@@ -62,8 +65,10 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
+    /// 
     /// let a = [1, 2, 3];
     /// let iter = a.multi_iter();
+    /// 
     /// assert_eq!(iter.peek_remaining().unwrap(), [1, 2, 3]);
     /// assert_eq!(iter.len(), 3);
     /// ```
@@ -82,8 +87,10 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
+    /// 
     /// let a = [1, 2, 3];
     /// let mut iter = a.multi_iter();
+    /// 
     /// assert_eq!(iter.next_n(2).unwrap(), [1, 2].as_ref());
     /// assert_eq!(iter.len(), 1);
     /// ```
@@ -105,9 +112,11 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
+    /// 
     /// let a = [1, 2, 3];
     /// let mut iter = a.multi_iter();
     /// let items = iter.next_n_if_each(2, |x| *x >= 1).unwrap();
+    /// 
     /// assert_eq!(items[0], 1);
     /// assert_eq!(items[1], 2);
     /// assert_eq!(iter.len(), 1);
@@ -135,9 +144,11 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
+    /// 
     /// let a = [1, 2, 3];
     /// let mut iter = a.multi_iter();
     /// let items = iter.next_n_if_slice(2, |x| x[0] == 1 && x[1] == 2).unwrap();
+    /// 
     /// assert_eq!(items.len(), 2);
     /// assert_eq!(iter.len(), 1);
     /// ```
@@ -167,8 +178,11 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
-    /// let iter = [1, 2, 3].multi_iter();
+    /// 
+    /// let a = [1, 2, 3];
+    /// let iter = a.multi_iter();
     /// let items = iter.remaining().unwrap();
+    /// 
     /// assert_eq!(items[0], 1);
     /// assert_eq!(items[1], 2);
     /// assert_eq!(items[2], 3);
@@ -188,8 +202,10 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
+    /// 
     /// let iter = [1, 2, 3].multi_iter();
     /// let items = iter.remaining_if_each(|x| *x >= 1).unwrap();
+    /// 
     /// assert_eq!(items.len(), 3);
     /// ```
     #[inline]
@@ -213,10 +229,12 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
+    /// 
     /// let iter = [1, 2, 3].multi_iter();
     /// let items = iter.remaining_if_slice(|x| {
     ///     x[0] == 1 && x[1] == 2 && x[2] == 3
     /// }).unwrap();
+    /// 
     /// assert_eq!(items[0], 1);
     /// assert_eq!(items[1], 2);
     /// assert_eq!(items[2], 3);

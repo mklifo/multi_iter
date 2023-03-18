@@ -26,7 +26,7 @@ Iterator for acting on multiple elements at a time.
 
 ```toml
 [dependencies]
-multi_iter = "0.1.3"
+multi_iter = "0.1.4"
 ```
 
 ## No-std support
@@ -36,5 +36,5 @@ Disable the default "std" feature by doing the following:
 
 ```toml
 [dependencies]
-multi_iter = { version = "0.1.3", default-features = false }
+multi_iter = { version = "0.1.4", default-features = false }
 ```
