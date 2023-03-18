@@ -25,7 +25,7 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::MultiIterator;
-    /// 
+    ///
     /// let iter = MultiIterator::new(&[1, 2, 3]);
     /// ```
     #[inline]
@@ -43,11 +43,14 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
-    /// 
+    ///
     /// let a = [1, 2, 3];
     /// let iter = a.multi_iter();
-    /// 
-    /// assert_eq!(iter.peek_n(2).unwrap(), [1, 2].as_ref());
+    /// let items = iter.peek_n(2).unwrap();
+    ///
+    /// assert_eq!(items.len(), 2); 
+    /// assert_eq!(items[0], 1);
+    /// assert_eq!(items[1], 2);
     /// assert_eq!(iter.len(), 3);
     /// ```
     #[inline]
@@ -65,11 +68,15 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
-    /// 
+    ///
     /// let a = [1, 2, 3];
     /// let iter = a.multi_iter();
-    /// 
-    /// assert_eq!(iter.peek_remaining().unwrap(), [1, 2, 3]);
+    /// let items = iter.peek_remaining().unwrap();
+    ///
+    /// assert_eq!(items.len(), 3);
+    /// assert_eq!(items[0], 1);
+    /// assert_eq!(items[1], 2);
+    /// assert_eq!(items[2], 3);
     /// assert_eq!(iter.len(), 3);
     /// ```
     #[inline]
@@ -87,11 +94,14 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
-    /// 
+    ///
     /// let a = [1, 2, 3];
     /// let mut iter = a.multi_iter();
-    /// 
-    /// assert_eq!(iter.next_n(2).unwrap(), [1, 2].as_ref());
+    /// let items = iter.next_n(2).unwrap();
+    ///
+    /// assert_eq!(items.len(), 2);
+    /// assert_eq!(items[0], 1);
+    /// assert_eq!(items[1], 2);
     /// assert_eq!(iter.len(), 1);
     /// ```
     #[inline]
@@ -112,11 +122,12 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
-    /// 
+    ///
     /// let a = [1, 2, 3];
     /// let mut iter = a.multi_iter();
     /// let items = iter.next_n_if_each(2, |x| *x >= 1).unwrap();
-    /// 
+    ///
+    /// assert_eq!(items.len(), 2);
     /// assert_eq!(items[0], 1);
     /// assert_eq!(items[1], 2);
     /// assert_eq!(iter.len(), 1);
@@ -144,11 +155,11 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
-    /// 
+    ///
     /// let a = [1, 2, 3];
     /// let mut iter = a.multi_iter();
     /// let items = iter.next_n_if_slice(2, |x| x[0] == 1 && x[1] == 2).unwrap();
-    /// 
+    ///
     /// assert_eq!(items.len(), 2);
     /// assert_eq!(iter.len(), 1);
     /// ```
@@ -178,11 +189,12 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
-    /// 
+    ///
     /// let a = [1, 2, 3];
     /// let iter = a.multi_iter();
     /// let items = iter.remaining().unwrap();
-    /// 
+    ///
+    /// assert_eq!(items.len(), 3);
     /// assert_eq!(items[0], 1);
     /// assert_eq!(items[1], 2);
     /// assert_eq!(items[2], 3);
@@ -202,11 +214,15 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
-    /// 
-    /// let iter = [1, 2, 3].multi_iter();
+    ///
+    /// let a = [1, 2, 3];
+    /// let iter = a.multi_iter();
     /// let items = iter.remaining_if_each(|x| *x >= 1).unwrap();
-    /// 
+    ///
     /// assert_eq!(items.len(), 3);
+    /// assert_eq!(items[0], 1);
+    /// assert_eq!(items[1], 2);
+    /// assert_eq!(items[2], 3);
     /// ```
     #[inline]
     pub fn remaining_if_each(self, func: impl Fn(&'a T) -> bool) -> Option<&'a [T]> {
@@ -229,12 +245,14 @@ impl<'a, T> MultiIterator<'a, T> {
     ///
     /// ```
     /// use multi_iter::IntoMultiIterator;
-    /// 
-    /// let iter = [1, 2, 3].multi_iter();
+    ///
+    /// let a = [1, 2, 3];
+    /// let iter = a.multi_iter();
     /// let items = iter.remaining_if_slice(|x| {
     ///     x[0] == 1 && x[1] == 2 && x[2] == 3
     /// }).unwrap();
-    /// 
+    ///
+    /// assert_eq!(items.len(), 3);
     /// assert_eq!(items[0], 1);
     /// assert_eq!(items[1], 2);
     /// assert_eq!(items[2], 3);
@@ -315,7 +333,9 @@ impl<'a, T> ExactSizeIterator for MultiIterator<'a, T> {
 ///
 /// ```
 /// use multi_iter::IntoMultiIterator;
-/// let iter = [1, 2, 3].multi_iter();
+/// 
+/// let a = [1, 2, 3];
+/// let iter = a.multi_iter();
 /// ```
 pub trait IntoMultiIterator<'a> {
     type Item;
@@ -557,14 +577,5 @@ mod tests {
         // Ensure successful condition on empty iterator returns `None`
         let b: [i32; 0] = [];
         assert!(b.multi_iter().remaining_if_slice(|_| true).is_none());
-    }
-
-    #[test]
-    fn test_iter_len() {
-        use super::IntoMultiIterator;
-
-        let a = [1, 2, 3];
-        let iter = a.multi_iter();
-        assert_eq!(iter.len(), 3);
     }
 }
