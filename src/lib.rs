@@ -1,5 +1,5 @@
 //! This crate provides an iterator which can act on multiple elements at once without any
-//! allocations. It's functions are similar to [`std::iter::Iterator`].
+//! allocations. Its functions are similar to [`std::iter::Iterator`].
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -538,7 +538,7 @@ mod tests {
 
         let a = [1, 2, 3];
 
-        // Ensure condition succeeding on non-empty iterator returns correct items.
+        // Ensure condition succeeding on non-empty iterator returns correct items
         let items = a
             .multi_iter()
             .remaining_if_slice(|x| x[0] == 1 && x[1] == 2 && x[2] == 3)
@@ -554,7 +554,7 @@ mod tests {
             .remaining_if_slice(|x| { x[0] == 1 && x[1] == 2 && x[2] == 4 })
             .is_none());
 
-        // Ensure successful condition on empty iterator returns `None`.
+        // Ensure successful condition on empty iterator returns `None`
         let b: [i32; 0] = [];
         assert!(b.multi_iter().remaining_if_slice(|_| true).is_none());
     }
