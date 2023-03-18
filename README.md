@@ -1,5 +1,6 @@
 [![CI](https://github.com/mklifo/multi_iter/actions/workflows/checks.yml/badge.svg)](https://github.com/mklifo/multi_iter/actions/workflows/checks.yml)
 [![](https://docs.rs/multi_iter/badge.svg)](https://docs.rs/multi_iter)
+[![crates.io](https://img.shields.io/crates/v/multi_iter.svg)](https://crates.io/crates/multi_iter)
 
 # `multi_iter`
 
