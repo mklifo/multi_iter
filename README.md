@@ -1,4 +1,5 @@
 [![CI](https://github.com/mklifo/multi_iter/actions/workflows/checks.yml/badge.svg)](https://github.com/mklifo/multi_iter/actions/workflows/checks.yml)
+[![](https://docs.rs/multi_iter/badge.svg)](https://docs.rs/multi_iter)
 
 # `multi_iter`
 
