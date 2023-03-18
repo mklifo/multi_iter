@@ -5,35 +5,35 @@
 
 Iterator for acting on multiple elements at a time.
 
-### Features
+## Features
 
 1. Peek multiple elements with:
-* `peek_n`
-* `peek_rest`
+   * `peek_n`
+   * `peek_rest`
  
 2. Advance in windows by using:
-* `next_n`
-* `next_n_if_each`
-* `next_n_if_slice`
+   * `next_n`
+   * `next_n_if_each`
+   * `next_n_if_slice`
 
 3. Collect with zero allocations using:
-* `remaining`
-* `remaining_if`
-* `remaining_if_slice`
+   * `remaining`
+   * `remaining_if`
+   * `remaining_if_slice`
 
-### Installation
-___
+## Installation
 
 ```toml
 [dependencies]
-multi_iter = "0.1.2"
+multi_iter = "0.1.3"
 ```
 
-### No-std support
+## No-std support
+
 It is possible to use this crate without the Rust standard library.
 Disable the default "std" feature by doing the following:
 
 ```toml
 [dependencies]
-multi_iter = { version = "0.1.2", default-features = false }
+multi_iter = { version = "0.1.3", default-features = false }
 ```

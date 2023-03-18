@@ -1,6 +1,6 @@
 [package]
 name = "multi_iter"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["mklifo <mklifo@proton.me>"]
 edition = "2021"
 
@@ -19,7 +19,6 @@ description = "Iterator for acting on multiple elements at a time"
 [features]
 default = ["std"]
 
-# Toggle for `no_std`
 std = []
 
 # Toggle for nightly support

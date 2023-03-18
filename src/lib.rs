@@ -235,6 +235,10 @@ impl<'a, T> MultiIterator<'a, T> {
     /// less than `n` elements.
     #[inline]
     fn span_next(&self, n: usize) -> Option<&'a [T]> {
+        if n == 0 {
+            return None;
+        }
+
         let start = self.cursor;
         let end = start + n;
         if end > self.data.len() {
@@ -265,7 +269,7 @@ impl<'a, T> MultiIterator<'a, T> {
 impl<'a, T> Iterator for MultiIterator<'a, T> {
     type Item = &'a T;
 
-    /// Returns the next element and advances the cursor by one.
+    /// Returns the next element & advances the cursor by one.
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let item = self.data.get(self.cursor);
@@ -275,7 +279,7 @@ impl<'a, T> Iterator for MultiIterator<'a, T> {
 }
 
 impl<'a, T> ExactSizeIterator for MultiIterator<'a, T> {
-    /// Returns the distance between the cursor and the end of the wrapped `data`.
+    /// Returns the distance between the cursor & the end of the wrapped `data`.
     #[inline]
     fn len(&self) -> usize {
         self.data.len() - self.cursor
@@ -339,14 +343,20 @@ mod tests {
 
         let a = [1, 2, 3];
         let iter = a.multi_iter();
-        let items = iter.peek_n(3).unwrap();
 
-        assert_eq!(iter.len(), 3);
+        // Ensure `None` is returned when `n` == 0
+        let items = iter.peek_n(0);
+        assert!(items.is_none());
+
+        // Ensure cursor does not advance & correct items are returned when 0 < `n` <= `iter.len()`
+        let items = iter.peek_n(3).unwrap();
         assert_eq!(items.len(), 3);
         assert_eq!(items[0], 1);
         assert_eq!(items[1], 2);
         assert_eq!(items[2], 3);
+        assert_eq!(iter.len(), 3);
 
+        // Ensure `None` is returned when `n` > `self.len()`
         assert!(iter.peek_n(4).is_none());
     }
 
@@ -356,13 +366,19 @@ mod tests {
 
         let a = [1, 2, 3];
         let iter = a.multi_iter();
-        assert_eq!(iter.len(), 3);
 
+        // Ensure peeking does not advance cursor & returns correct items on non-empty iterator
         let items = iter.peek_remaining().unwrap();
         assert_eq!(items.len(), 3);
         assert_eq!(items[0], 1);
         assert_eq!(items[1], 2);
         assert_eq!(items[2], 3);
+        assert_eq!(iter.len(), 3);
+
+        // Ensure `None` is returned when iterator is empty
+        let b: [i32; 0] = [];
+        let iter = b.multi_iter().peek_remaining();
+        assert!(iter.is_none());
     }
 
     #[test]
@@ -372,13 +388,27 @@ mod tests {
         let a = [1, 2, 3];
         let mut iter = a.multi_iter();
 
-        let items = iter.next_n(4);
+        // Ensure `None` is returned when `n` == 0
+        let items = iter.next_n(0);
         assert!(items.is_none());
 
+        // Ensure `None` is returned & cursor does not advance when `n` > `self.len()`
+        let items = iter.next_n(4);
+        assert!(items.is_none());
+        assert_eq!(iter.len(), 3);
+
+        // Ensure correct items are returned & cursor is advanced when 0 < `n` <= `self.len()`
         let items = iter.next_n(3).unwrap();
+        assert_eq!(items.len(), 3);
         assert_eq!(items[0], 1);
         assert_eq!(items[1], 2);
         assert_eq!(items[2], 3);
+        assert_eq!(iter.len(), 0);
+
+        // Ensure `None` is returned when iterator is empty
+        let b: [i32; 0] = [];
+        let iter = b.multi_iter().next_n(1);
+        assert!(iter.is_none());
     }
 
     #[test]
@@ -388,13 +418,26 @@ mod tests {
         let a = [1, 2, 3];
         let mut iter = a.multi_iter();
 
-        assert!(iter.next_n_if_each(3, |x| *x > 1).is_none());
+        // Ensure condition succeeding when `n` == 0 returns `None`
+        let items = iter.next_n_if_each(0, |_| true);
+        assert!(items.is_none());
 
+        // Ensure condition failing on non-empty iterator returns `None` & does not advance cursor
+        let items = iter.next_n_if_slice(3, |x| x[0] == 1 && x[1] == 2 && x[2] == 4);
+        assert!(items.is_none());
+        assert_eq!(iter.len(), 3);
+
+        // Ensure condition succeeding on non-empty iterator returns correct items & advances cursor
         let items = iter.next_n_if_each(3, |x| *x >= 1).unwrap();
         assert_eq!(items.len(), 3);
         assert_eq!(items[0], 1);
         assert_eq!(items[1], 2);
         assert_eq!(items[2], 3);
+        assert_eq!(iter.len(), 0);
+
+        // Ensure condition failing on empty iterator returns `None`
+        let items = iter.next_n_if_each(1, |x| *x >= 1);
+        assert!(items.is_none());
     }
 
     #[test]
@@ -404,9 +447,16 @@ mod tests {
         let a = [1, 2, 3];
         let mut iter = a.multi_iter();
 
-        let items = iter.next_n_if_slice(3, |x| x[0] == 1 && x[1] == 2 && x[2] == 4);
+        // Ensure condition succeeding when `n` == 0 returns `None`
+        let items = iter.next_n_if_slice(0, |_| true);
         assert!(items.is_none());
 
+        // Ensure condition failing on non-empty iterator returns `None`
+        let items = iter.next_n_if_slice(3, |x| x[0] == 1 && x[1] == 2 && x[2] == 4);
+        assert!(items.is_none());
+        assert_eq!(iter.len(), 3);
+
+        // Ensure condition succeeding on non-empty iterator returns correct items & advances cursor
         let items = iter
             .next_n_if_slice(3, |x| x[0] == 1 && x[1] == 2 && x[2] == 3)
             .unwrap();
@@ -414,6 +464,11 @@ mod tests {
         assert_eq!(items[0], 1);
         assert_eq!(items[1], 2);
         assert_eq!(items[2], 3);
+        assert_eq!(iter.len(), 0);
+
+        // Ensure condition succeeding on empty iterator returns `None`
+        let items = iter.next_n_if_slice(1, |_| true);
+        assert!(items.is_none());
     }
 
     #[test]
@@ -422,13 +477,18 @@ mod tests {
 
         let a = [1, 2, 3];
         let iter = a.multi_iter();
-        assert_eq!(iter.len(), 3);
 
+        // Ensure correct items are returned when iterator is not empty
         let items = iter.remaining().unwrap();
         assert_eq!(items.len(), 3);
         assert_eq!(items[0], 1);
         assert_eq!(items[1], 2);
         assert_eq!(items[2], 3);
+
+        // Ensure `None` is returned when iterator is empty
+        let b: [i32; 0] = [];
+        let iter = b.multi_iter().remaining();
+        assert!(iter.is_none());
     }
 
     #[test]
@@ -437,13 +497,21 @@ mod tests {
 
         let a = [1, 2, 3];
 
+        // Ensure condition succeeding on non-empty iterator returns correct items
         let items = a.multi_iter().remaining_if_each(|x| *x >= 1).unwrap();
         assert_eq!(items.len(), 3);
         assert_eq!(items[0], 1);
         assert_eq!(items[1], 2);
         assert_eq!(items[2], 3);
 
-        assert!(a.multi_iter().remaining_if_each(|x| *x > 1).is_none());
+        // Ensure condition failing on non-empty iterator returns `None`
+        let items = a.multi_iter().remaining_if_each(|x| *x > 1);
+        assert!(items.is_none());
+
+        // Ensure successful condition on empty iterator returns `None`
+        let b: [i32; 0] = [];
+        let items = b.multi_iter().remaining_if_each(|_| true);
+        assert!(items.is_none());
     }
 
     #[test]
@@ -452,11 +520,7 @@ mod tests {
 
         let a = [1, 2, 3];
 
-        assert!(a
-            .multi_iter()
-            .remaining_if_slice(|x| { x[0] == 1 && x[1] == 2 && x[2] == 4 })
-            .is_none());
-
+        // Ensure condition succeeding on non-empty iterator returns correct items.
         let items = a
             .multi_iter()
             .remaining_if_slice(|x| x[0] == 1 && x[1] == 2 && x[2] == 3)
@@ -465,5 +529,24 @@ mod tests {
         assert_eq!(items[0], 1);
         assert_eq!(items[1], 2);
         assert_eq!(items[2], 3);
+
+        // Ensure condition failing on non-empty iterator returns `None`
+        assert!(a
+            .multi_iter()
+            .remaining_if_slice(|x| { x[0] == 1 && x[1] == 2 && x[2] == 4 })
+            .is_none());
+
+        // Ensure successful condition on empty iterator returns `None`.
+        let b: [i32; 0] = [];
+        assert!(b.multi_iter().remaining_if_slice(|_| true).is_none());
+    }
+
+    #[test]
+    fn test_iter_len() {
+        use super::IntoMultiIterator;
+
+        let a = [1, 2, 3];
+        let iter = a.multi_iter();
+        assert_eq!(iter.len(), 3);
     }
 }
