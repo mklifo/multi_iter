@@ -3,6 +3,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use std::iter::FusedIterator;
+
 #[cfg(feature = "unstable")]
 use std::collections::BinaryHeap;
 
@@ -55,7 +57,17 @@ impl<'a, T> MultiIterator<'a, T> {
     /// ```
     #[inline]
     pub fn peek_n(&self, n: usize) -> Option<&'a [T]> {
-        self.span_next(n)
+        if n == 0 {
+            return None;
+        }
+
+        let start = self.cursor;
+        let end = start + n;
+        if end > self.data.len() {
+            None
+        } else {
+            Some(&self.data[start..end])
+        }
     }
 
     /// Peeks the remaining slice of elements after the cursor.
@@ -81,7 +93,11 @@ impl<'a, T> MultiIterator<'a, T> {
     /// ```
     #[inline]
     pub fn peek_remaining(&self) -> Option<&'a [T]> {
-        self.span_remaining()
+        if self.len() == 0 {
+            None
+        } else {
+            self.peek_n(self.len())
+        }
     }
 
     /// Returns a slice of the next `n` elements after the cursor, which is then advanced by `n`.
@@ -106,8 +122,8 @@ impl<'a, T> MultiIterator<'a, T> {
     /// ```
     #[inline]
     pub fn next_n(&mut self, n: usize) -> Option<&'a [T]> {
-        let span = self.span_next(n)?;
-        self.advance_cursor(span.len());
+        let span = self.peek_n(n)?;
+        self.cursor += span.len();
         Some(span)
     }
 
@@ -134,13 +150,13 @@ impl<'a, T> MultiIterator<'a, T> {
     /// ```
     #[inline]
     pub fn next_n_if_each(&mut self, n: usize, func: impl Fn(&'a T) -> bool) -> Option<&'a [T]> {
-        let span = self.span_next(n)?;
+        let span = self.peek_n(n)?;
         for elem in span {
             if !func(elem) {
                 return None;
             }
         }
-        self.advance_cursor(span.len());
+        self.cursor += span.len();
         Some(span)
     }
 
@@ -169,9 +185,9 @@ impl<'a, T> MultiIterator<'a, T> {
         n: usize,
         func: impl FnOnce(&'a [T]) -> bool,
     ) -> Option<&'a [T]> {
-        let span = self.span_next(n)?;
+        let span = self.peek_n(n)?;
         if func(span) {
-            self.advance_cursor(span.len());
+            self.cursor += span.len();
             Some(span)
         } else {
             None
@@ -201,7 +217,7 @@ impl<'a, T> MultiIterator<'a, T> {
     /// ```
     #[inline]
     pub fn remaining(self) -> Option<&'a [T]> {
-        self.span_remaining()
+        self.peek_remaining()
     }
 
     /// Returns a slice of the remaining elements if `func` is true for each element in the slice.
@@ -226,7 +242,7 @@ impl<'a, T> MultiIterator<'a, T> {
     /// ```
     #[inline]
     pub fn remaining_if_each(self, func: impl Fn(&'a T) -> bool) -> Option<&'a [T]> {
-        let span = self.span_remaining()?;
+        let span = self.peek_remaining()?;
         for elem in span {
             if !func(elem) {
                 return None;
@@ -259,68 +275,49 @@ impl<'a, T> MultiIterator<'a, T> {
     /// ```
     #[inline]
     pub fn remaining_if_slice(self, func: impl FnOnce(&'a [T]) -> bool) -> Option<&'a [T]> {
-        let span = self.span_remaining()?;
+        let span = self.peek_remaining()?;
         if !func(span) {
             None
         } else {
             Some(span)
         }
     }
-
-    /// Creates a span over the next `n` elements after the cursor. Returns [`None`] if there are
-    /// less than `n` elements.
-    #[inline]
-    fn span_next(&self, n: usize) -> Option<&'a [T]> {
-        if n == 0 {
-            return None;
-        }
-
-        let start = self.cursor;
-        let end = start + n;
-        if end > self.data.len() {
-            None
-        } else {
-            Some(&self.data[start..end])
-        }
-    }
-
-    /// Creates a span over the remaining of the elements after the cursor. Returns [`None`] if
-    /// there are no elements remaining.
-    #[inline]
-    fn span_remaining(&self) -> Option<&'a [T]> {
-        if self.len() == 0 {
-            None
-        } else {
-            self.span_next(self.len())
-        }
-    }
-
-    /// Advances the cursor by `n`.
-    #[inline]
-    fn advance_cursor(&mut self, n: usize) {
-        self.cursor += n;
-    }
 }
 
 impl<'a, T> Iterator for MultiIterator<'a, T> {
     type Item = &'a T;
 
-    /// Returns the next element & advances the cursor by one.
     #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next(&mut self) -> Option<&'a T> {
         let item = self.data.get(self.cursor);
-        self.advance_cursor(1);
+        self.cursor += 1;
         item
+    }
+
+    #[inline]
+    fn count(self) -> usize {
+        self.len()
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len(), None)
+    }
+
+    #[inline]
+    fn last(self) -> Option<&'a T> {
+        self.data.last()
     }
 }
 
 impl<'a, T> ExactSizeIterator for MultiIterator<'a, T> {
-    /// Returns the distance between the cursor & the end of the wrapped `data`.
     #[inline]
     fn len(&self) -> usize {
         self.data.len() - self.cursor
     }
 }
+
+impl<'a, T> FusedIterator for MultiIterator<'a, T> {}
 
 /// Conversion into a [`MultiIterator`].
 ///

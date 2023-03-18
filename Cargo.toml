@@ -1,6 +1,6 @@
 [package]
 name = "multi_iter"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["mklifo <mklifo@proton.me>"]
 edition = "2021"
 
